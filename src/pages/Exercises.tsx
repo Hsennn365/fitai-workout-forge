@@ -37,8 +37,8 @@ const muscleGroups = Array.from(new Set(exercises.map(ex => ex.muscleGroup)));
 
 const Exercises = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<string>("");
-  const [selectedEquipment, setSelectedEquipment] = useState<string>("");
+  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<string>("all_muscles");
+  const [selectedEquipment, setSelectedEquipment] = useState<string>("all_equipment");
   
   // Get unique equipment types for filtering
   const equipmentTypes = Array.from(
@@ -54,9 +54,10 @@ const Exercises = () => {
                           exercise.muscleGroup.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           exercise.description.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesMuscleGroup = !selectedMuscleGroup || exercise.muscleGroup === selectedMuscleGroup;
+    const matchesMuscleGroup = selectedMuscleGroup === "all_muscles" || 
+                               exercise.muscleGroup === selectedMuscleGroup;
     
-    const matchesEquipment = !selectedEquipment || 
+    const matchesEquipment = selectedEquipment === "all_equipment" || 
                              exercise.equipmentNeeded.includes(selectedEquipment);
     
     return matchesSearch && matchesMuscleGroup && matchesEquipment;
@@ -99,7 +100,7 @@ const Exercises = () => {
                     <SelectValue placeholder="Muscle Group" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Muscles</SelectItem>
+                    <SelectItem value="all_muscles">All Muscles</SelectItem>
                     {muscleGroups.map(group => (
                       <SelectItem key={group} value={group}>{group}</SelectItem>
                     ))}
@@ -114,7 +115,7 @@ const Exercises = () => {
                     <SelectValue placeholder="Equipment" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Equipment</SelectItem>
+                    <SelectItem value="all_equipment">All Equipment</SelectItem>
                     <SelectItem value="None">Bodyweight</SelectItem>
                     {equipmentTypes.map(eq => (
                       <SelectItem key={eq} value={eq}>{eq}</SelectItem>
