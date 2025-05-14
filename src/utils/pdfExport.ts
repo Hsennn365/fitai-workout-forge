@@ -4,25 +4,6 @@ import { format } from 'date-fns';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 
-// TypeScript workaround for jsPDF-autotable
-declare module 'jspdf' {
-  interface jsPDF {
-    autoTable: (options: any) => jsPDF;
-    internal: {
-      events: any;
-      scaleFactor: number;
-      pageSize: {
-        width: number;
-        getWidth: () => number;
-        height: number;
-        getHeight: () => number;
-      };
-      pages: number[]; // Using number[] instead of any[]
-      getEncryptor(objectId: number): (data: string) => string;
-    };
-  }
-}
-
 export const exportWorkoutToPDF = (workout: WorkoutPlan): void => {
   try {
     // Create a new PDF document
