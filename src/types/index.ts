@@ -1,4 +1,5 @@
 
+
 // User profile and biometric data
 export interface UserProfile {
   id?: string;
@@ -13,6 +14,21 @@ export interface UserProfile {
   activityLevel: ActivityLevel;
   goals: string;
   injuryHistory?: string;
+  // Added preferences
+  preferences?: {
+    daysPerWeek: number;
+    workoutLength: number; // in minutes
+    preferredExercises: string[];
+    excludedExercises: string[];
+    preferredEquipment: string[];
+  };
+  // Added progress tracking
+  progressTracking?: {
+    completedWorkouts: number;
+    totalWorkoutMinutes: number;
+    estimatedCaloriesBurned: number;
+    lastWorkoutDate?: string;
+  };
 }
 
 export enum ActivityLevel {
@@ -64,3 +80,28 @@ export interface Exercise {
   demoVideoUrl?: string;
   imageUrl?: string;
 }
+
+// Workout progress tracking
+export interface WorkoutProgress {
+  id: string;
+  userId?: string;
+  workoutPlanId: string;
+  date: string;
+  completedExercises: CompletedExercise[];
+  duration: number; // in minutes
+  calories: number;
+  notes?: string;
+}
+
+export interface CompletedExercise {
+  exerciseId: string;
+  name: string;
+  sets: CompletedSet[];
+}
+
+export interface CompletedSet {
+  reps: number;
+  weight?: number;
+  completed: boolean;
+}
+

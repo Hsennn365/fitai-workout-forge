@@ -1,112 +1,64 @@
 
 import { useState } from "react";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
-import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { Card } from "@/components/ui/card";
-import { ActivityLevel, UserProfile, WorkoutPlan } from "@/types";
-import { CalendarIcon, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { Dumbbell, Calendar, ArrowRight } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { cn } from "@/lib/utils";
+import { useWorkoutData } from "@/hooks/useWorkoutData";
 import { mockUser } from "@/mockData";
-import { generateWorkoutPlan } from "@/services/aiService";
-import { toast } from "sonner";
-
-const formSchema = z.object({
-  gender: z.enum(["male", "female", "other"], {
-    required_error: "Please select a gender.",
-  }),
-  dateOfBirth: z.date({
-    required_error: "Please select a date of birth.",
-  }),
-  heightCm: z.number().min(100, {
-    message: "Height must be at least 100 cm.",
-  }).max(250, {
-    message: "Height must be less than 250 cm.",
-  }),
-  weightKg: z.number().min(30, {
-    message: "Weight must be at least 30 kg.",
-  }).max(250, {
-    message: "Weight must be less than 250 kg.",
-  }),
-  bodyFatPct: z.number().min(3, {
-    message: "Body fat must be at least 3%.",
-  }).max(50, {
-    message: "Body fat must be less than 50%.",
-  }).optional(),
-  restingHR: z.number().min(40, {
-    message: "Resting heart rate must be at least 40 bpm.",
-  }).max(200, {
-    message: "Resting heart rate must be less than 200 bpm.",
-  }).optional(),
-  activityLevel: z.nativeEnum(ActivityLevel, {
-    required_error: "Please select an activity level.",
-  }),
-  goals: z.string().min(10, {
-    message: "Please describe your goals in at least 10 characters.",
-  }),
-  injuryHistory: z.string().optional(),
-});
+import { UserProfile } from "@/types";
 
 const WorkoutGenerator = () => {
   const navigate = useNavigate();
+  const { generateWorkoutPlan } = useWorkoutData();
+  
+  const [user, setUser] = useState<UserProfile>(mockUser);
+  const [daysPerWeek, setDaysPerWeek] = useState<number>(3);
+  const [generationType, setGenerationType] = useState<string>("ai");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [user] = useState<UserProfile>(mockUser);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      gender: user.gender,
-      dateOfBirth: new Date(user.dateOfBirth),
-      heightCm: user.heightCm,
-      weightKg: user.weightKg,
-      bodyFatPct: user.bodyFatPct,
-      restingHR: user.restingHR,
-      activityLevel: user.activityLevel,
-      goals: user.goals,
-      injuryHistory: user.injuryHistory,
-    },
-  });
-
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  // Validate days per week selection
+  const validateDaysPerWeek = (days: number): boolean => {
+    return days >= 2 && days <= 7;
+  };
+  
+  const handleGenerate = () => {
     try {
+      // Validate input
+      if (!validateDaysPerWeek(daysPerWeek)) {
+        toast.error("Please select between 2 and 7 days per week");
+        return;
+      }
+      
       setIsGenerating(true);
       
-      // Create a profile object from form values
-      const profile: UserProfile = {
-        ...user,
-        ...values,
-        name: user.name,
-        email: user.email,
-        dateOfBirth: format(values.dateOfBirth, "yyyy-MM-dd"),
-      };
-      
-      // Generate workout plan
-      const plan = await generateWorkoutPlan(profile);
-      
-      // Store the plan in localStorage (in a real app, this would go to a backend)
-      const existingPlans = JSON.parse(localStorage.getItem('workoutPlans') || '[]');
-      localStorage.setItem('workoutPlans', JSON.stringify([plan, ...existingPlans]));
-      
-      // Show success message and redirect
-      toast.success("Workout plan generated successfully!");
-      navigate('/workout-history');
-      
+      // In a real app, this would call the AI service
+      setTimeout(() => {
+        // Generate workout plan using our hook
+        const plan = generateWorkoutPlan(user, daysPerWeek);
+        
+        // Navigate to the workout plan
+        navigate(`/workout-plan/${plan.id}`);
+        setIsGenerating(false);
+      }, 1500);
     } catch (error) {
-      console.error(error);
-      toast.error("Failed to generate workout plan. Please try again.");
-    } finally {
+      console.error("Error generating workout:", error);
+      toast.error("Failed to generate workout plan");
       setIsGenerating(false);
     }
   };
@@ -117,251 +69,229 @@ const WorkoutGenerator = () => {
       
       <main className="flex-grow container mx-auto px-4 py-8">
         <PageHeader 
-          title="Generate Workout Plan" 
-          description="Enter your biometric data and fitness goals to create a personalized plan" 
+          title="Workout Generator" 
+          description="Create a personalized workout plan based on your goals and preferences" 
         />
         
-        <Card className="max-w-2xl mx-auto p-6">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="gender"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Gender</FormLabel>
-                      <Select 
-                        onValueChange={field.onChange} 
-                        defaultValue={field.value}
+        <Card className="max-w-3xl mx-auto">
+          <CardHeader>
+            <CardTitle>Generate Your Workout Plan</CardTitle>
+            <CardDescription>
+              Select your preferences and generate a personalized workout plan
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent>
+            <Tabs defaultValue="preferences" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="preferences">Preferences</TabsTrigger>
+                <TabsTrigger value="templates">Templates</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="preferences" className="space-y-6 pt-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Days Per Week Selection */}
+                  <div className="space-y-2">
+                    <Label htmlFor="daysPerWeek">Days Per Week</Label>
+                    <Select 
+                      value={daysPerWeek.toString()} 
+                      onValueChange={(value) => setDaysPerWeek(parseInt(value))}
+                    >
+                      <SelectTrigger id="daysPerWeek">
+                        <SelectValue placeholder="Select days" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[2, 3, 4, 5, 6, 7].map(days => (
+                          <SelectItem key={days} value={days.toString()}>
+                            {days} day{days !== 1 ? 's' : ''}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    
+                    <div className="flex gap-2 mt-2">
+                      {[2, 3, 4, 5, 6, 7].map(days => (
+                        <Button
+                          key={days}
+                          type="button"
+                          variant={days === daysPerWeek ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setDaysPerWeek(days)}
+                          className="flex-1"
+                        >
+                          {days}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Generation Type */}
+                  <div className="space-y-2">
+                    <Label htmlFor="generationType">Generation Type</Label>
+                    <Select 
+                      value={generationType} 
+                      onValueChange={setGenerationType}
+                    >
+                      <SelectTrigger id="generationType">
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ai">AI Generated</SelectItem>
+                        <SelectItem value="template">Use Template</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                
+                  {/* Additional preferences can be added here */}
+                  <div className="space-y-2">
+                    <Label htmlFor="focus">Workout Focus</Label>
+                    <Select defaultValue="balanced">
+                      <SelectTrigger id="focus">
+                        <SelectValue placeholder="Select focus" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="balanced">Balanced</SelectItem>
+                        <SelectItem value="strength">Strength</SelectItem>
+                        <SelectItem value="hypertrophy">Hypertrophy</SelectItem>
+                        <SelectItem value="endurance">Endurance</SelectItem>
+                        <SelectItem value="weight-loss">Weight Loss</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                
+                  <div className="space-y-2">
+                    <Label htmlFor="experience">Experience Level</Label>
+                    <Select defaultValue="intermediate">
+                      <SelectTrigger id="experience">
+                        <SelectValue placeholder="Select level" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="beginner">Beginner</SelectItem>
+                        <SelectItem value="intermediate">Intermediate</SelectItem>
+                        <SelectItem value="advanced">Advanced</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="equipment">Available Equipment</Label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {[
+                      "Dumbbells", "Barbell", "Pull-up Bar", 
+                      "Resistance Bands", "Gym Machine", "Bodyweight Only"
+                    ].map(equipment => (
+                      <Button
+                        key={equipment}
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="justify-start"
                       >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select gender" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="male">Male</SelectItem>
-                          <SelectItem value="female">Female</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="dateOfBirth"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Date of birth</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, "PPP")
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            disabled={(date) =>
-                              date > new Date() || date < new Date("1900-01-01")
-                            }
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="heightCm"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Height (cm)</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          {...field}
-                          onChange={e => field.onChange(parseFloat(e.target.value))}
+                        <input
+                          type="checkbox"
+                          id={equipment}
+                          className="mr-2"
                         />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                        {equipment}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
                 
-                <FormField
-                  control={form.control}
-                  name="weightKg"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Weight (kg)</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          {...field}
-                          onChange={e => field.onChange(parseFloat(e.target.value))}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="notes">Additional Notes</Label>
+                  <Textarea
+                    id="notes"
+                    placeholder="Any specific requests, limitations, or preferences..."
+                    className="resize-none"
+                    rows={3}
+                  />
+                </div>
                 
-                <FormField
-                  control={form.control}
-                  name="bodyFatPct"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Body Fat % (optional)</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          {...field}
-                          onChange={e => field.onChange(parseFloat(e.target.value) || undefined)}
-                          value={field.value ?? ""}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+                <Button 
+                  onClick={handleGenerate} 
+                  disabled={isGenerating} 
+                  className="w-full bg-gradient-to-r from-fitai-indigo to-fitai-purple hover:opacity-90"
+                >
+                  {isGenerating ? (
+                    <>Generating Your Workout...</>
+                  ) : (
+                    <>
+                      Generate Workout Plan
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </>
                   )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="restingHR"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Resting Heart Rate (bpm, optional)</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          {...field}
-                          onChange={e => field.onChange(parseFloat(e.target.value) || undefined)}
-                          value={field.value ?? ""}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="activityLevel"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Activity Level</FormLabel>
-                      <Select 
-                        onValueChange={field.onChange} 
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select activity level" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value={ActivityLevel.Sedentary}>
-                            Sedentary (little or no exercise)
-                          </SelectItem>
-                          <SelectItem value={ActivityLevel.LightlyActive}>
-                            Lightly Active (light exercise 1-3 days/week)
-                          </SelectItem>
-                          <SelectItem value={ActivityLevel.ModeratelyActive}>
-                            Moderately Active (moderate exercise 3-5 days/week)
-                          </SelectItem>
-                          <SelectItem value={ActivityLevel.VeryActive}>
-                            Very Active (hard exercise 6-7 days/week)
-                          </SelectItem>
-                          <SelectItem value={ActivityLevel.ExtremelyActive}>
-                            Extremely Active (very hard exercise, physical job or training twice a day)
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                </Button>
+              </TabsContent>
               
-              <FormField
-                control={form.control}
-                name="goals"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Fitness Goals</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Describe your fitness goals in detail" 
-                        className="resize-none" 
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      E.g., "Build muscle mass, improve endurance, lose weight"
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="injuryHistory"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Injury History (optional)</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="List any injuries or conditions that might affect your workout" 
-                        className="resize-none" 
-                        {...field} 
-                        value={field.value ?? ""}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <Button 
-                type="submit" 
-                className="w-full bg-gradient-to-r from-fitai-indigo to-fitai-purple hover:opacity-90" 
-                disabled={isGenerating}
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating Plan...
-                  </>
-                ) : (
-                  "Generate Workout Plan"
-                )}
-              </Button>
-            </form>
-          </Form>
+              <TabsContent value="templates" className="pt-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  {[
+                    {
+                      name: "Full Body Split",
+                      days: 3,
+                      icon: <Dumbbell className="h-10 w-10 mb-2 opacity-80" />,
+                      description: "Train your entire body 3 times per week"
+                    },
+                    {
+                      name: "Upper/Lower Split",
+                      days: 4,
+                      icon: <Dumbbell className="h-10 w-10 mb-2 opacity-80" />,
+                      description: "Alternate between upper and lower body workouts"
+                    },
+                    {
+                      name: "Push/Pull/Legs",
+                      days: 6,
+                      icon: <Calendar className="h-10 w-10 mb-2 opacity-80" />,
+                      description: "Dedicated days for pushing, pulling, and legs"
+                    },
+                    {
+                      name: "Body Part Split",
+                      days: 5,
+                      icon: <Calendar className="h-10 w-10 mb-2 opacity-80" />,
+                      description: "Focus on different muscle groups each day"
+                    },
+                  ].map((template) => (
+                    <Card 
+                      key={template.name} 
+                      className="overflow-hidden cursor-pointer hover:border-primary transition-colors"
+                      onClick={() => {
+                        setDaysPerWeek(template.days);
+                        setGenerationType("template");
+                      }}
+                    >
+                      <CardContent className="p-6 text-center">
+                        {template.icon}
+                        <h3 className="text-lg font-medium">{template.name}</h3>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {template.description}
+                        </p>
+                        <p className="text-xs mt-2 font-medium">
+                          {template.days} days/week
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+                
+                <Button 
+                  onClick={handleGenerate}
+                  disabled={isGenerating}
+                  className="w-full bg-gradient-to-r from-fitai-indigo to-fitai-purple hover:opacity-90"
+                >
+                  {isGenerating ? (
+                    <>Generating Your Workout...</>
+                  ) : (
+                    <>
+                      Use Selected Template
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
         </Card>
       </main>
       

@@ -7,45 +7,67 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { toast } from "sonner";
 import { format } from "date-fns";
-import { ArrowLeft, Calendar, Clock, Weight, Info, Play } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, Weight, Info, Play, FileText, CheckCircle } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { useWorkoutData } from "@/hooks/useWorkoutData";
+import { exportWorkoutToPDF } from "@/utils/pdfExport";
 import type { WorkoutPlan as WorkoutPlanType } from "@/types";
-import { mockWorkoutPlans } from "@/mockData";
 
-const WorkoutPlan = () => {
+const WorkoutPlanPage = () => {
   const { planId } = useParams<{ planId: string }>();
   const navigate = useNavigate();
+  const { getWorkoutPlanById, logWorkoutProgress } = useWorkoutData();
   const [workout, setWorkout] = useState<WorkoutPlanType | null>(null);
   const [selectedWeek, setSelectedWeek] = useState("1");
   
   useEffect(() => {
     try {
-      // Try to load from localStorage first
-      const storedPlans = localStorage.getItem("workoutPlans");
-      const parsedPlans = storedPlans ? JSON.parse(storedPlans) : [];
-      
-      // Find the workout plan by ID
-      let foundPlan = parsedPlans.find((plan: WorkoutPlanType) => plan.id === planId);
-      
-      // If not found in localStorage, try mock data
-      if (!foundPlan) {
-        foundPlan = mockWorkoutPlans.find(plan => plan.id === planId);
+      if (!planId) {
+        navigate('/workout-history');
+        return;
       }
+      
+      const foundPlan = getWorkoutPlanById(planId);
       
       if (foundPlan) {
         setWorkout(foundPlan);
       } else {
         console.error(`Workout plan with ID ${planId} not found`);
-        // Navigate back to history if plan not found
+        toast.error("Workout plan not found");
         navigate('/workout-history');
       }
     } catch (error) {
       console.error("Error loading workout plan:", error);
+      toast.error("Error loading workout plan");
     }
-  }, [planId, navigate]);
+  }, [planId, navigate, getWorkoutPlanById]);
+
+  const handleExportPDF = () => {
+    if (!workout) return;
+    try {
+      exportWorkoutToPDF(workout);
+      toast.success("Workout plan exported to PDF");
+    } catch (error) {
+      console.error("Error exporting to PDF:", error);
+      toast.error("Failed to export workout plan");
+    }
+  };
+  
+  const handleLogWorkout = () => {
+    if (!workout) return;
+    try {
+      // In a real app, we would collect actual workout data
+      logWorkoutProgress(workout.id || "", "Completed workout as planned", 300);
+      toast.success("Workout logged successfully");
+    } catch (error) {
+      console.error("Error logging workout:", error);
+      toast.error("Failed to log workout");
+    }
+  };
 
   if (!workout) {
     return (
@@ -86,9 +108,23 @@ const WorkoutPlan = () => {
                 Generated on {format(new Date(workout.generatedOn), "PPP")}
               </p>
             </div>
-            <Button onClick={() => navigate('/workout-generator')}>
-              Create New Plan
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                onClick={handleExportPDF}
+                className="flex items-center gap-1"
+              >
+                <FileText className="h-4 w-4" />
+                Export PDF
+              </Button>
+              <Button 
+                onClick={handleLogWorkout}
+                className="flex items-center gap-1"
+              >
+                <CheckCircle className="h-4 w-4" />
+                Log Workout
+              </Button>
+            </div>
           </div>
         </div>
         
@@ -141,21 +177,17 @@ const WorkoutPlan = () => {
                                         This exercise targets the {exercise.muscleGroup.toLowerCase()} muscle group.
                                       </p>
                                       
-                                      {/* We need to fix the demoVideoUrl reference here */}
+                                      {/* Fixed demo video search using YouTube search query */}
                                       <div className="flex items-center">
-                                        {/* Instead of checking for demoVideoUrl, which doesn't exist in WorkoutExercise,
-                                            we'll use notes as a condition to display the demo link */}
-                                        {exercise.notes && (
-                                          <a 
-                                            href={`https://www.youtube.com/results?search_query=${encodeURIComponent(exercise.name)}+exercise+tutorial`}
-                                            target="_blank" 
-                                            rel="noopener noreferrer"
-                                            className="flex items-center text-primary hover:underline"
-                                          >
-                                            <Play className="mr-1 h-4 w-4" />
-                                            Search Demo
-                                          </a>
-                                        )}
+                                        <a 
+                                          href={`https://www.youtube.com/results?search_query=${encodeURIComponent(exercise.name)}+exercise+tutorial`}
+                                          target="_blank" 
+                                          rel="noopener noreferrer"
+                                          className="flex items-center text-primary hover:underline"
+                                        >
+                                          <Play className="mr-1 h-4 w-4" />
+                                          Search Demo
+                                        </a>
                                       </div>
                                       
                                       {exercise.notes && (
@@ -204,7 +236,7 @@ const WorkoutPlan = () => {
                     </CardContent>
                     {day.exercises.length > 0 && (
                       <CardFooter>
-                        <Button variant="outline" className="w-full">Start Workout</Button>
+                        <Button variant="outline" className="w-full" onClick={handleLogWorkout}>Start Workout</Button>
                       </CardFooter>
                     )}
                   </Card>
@@ -220,4 +252,4 @@ const WorkoutPlan = () => {
   );
 };
 
-export default WorkoutPlan;
+export default WorkoutPlanPage;

@@ -1,40 +1,63 @@
 
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import PageHeader from "@/components/PageHeader";
+import { 
+  Card, 
+  CardContent, 
+  CardFooter,
+  CardHeader,
+  CardTitle,
+  CardDescription 
+} from "@/components/ui/card";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { Dumbbell, Search, Play } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import PageHeader from "@/components/PageHeader";
+import { exercises } from "@/data/exercisesData";
 import { Exercise } from "@/types";
-import { mockExercises } from "@/mockData";
-import { Dumbbell, Filter, Play, Search, X } from "lucide-react";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+// Get unique muscle groups for filtering
+const muscleGroups = Array.from(new Set(exercises.map(ex => ex.muscleGroup)));
 
 const Exercises = () => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<string | null>(null);
-  const [selectedEquipment, setSelectedEquipment] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<string>("");
+  const [selectedEquipment, setSelectedEquipment] = useState<string>("");
   
-  // Get unique muscle groups and equipment from exercises
-  const muscleGroups = Array.from(new Set(mockExercises.map(ex => ex.muscleGroup)));
+  // Get unique equipment types for filtering
   const equipmentTypes = Array.from(
-    new Set(mockExercises.flatMap(ex => ex.equipmentNeeded))
+    new Set(
+      exercises.flatMap(ex => ex.equipmentNeeded)
+        .filter(eq => eq !== "None")
+    )
   );
   
-  // Filter exercises based on search, muscle group, and equipment
-  const filteredExercises = mockExercises.filter(exercise => {
-    const matchesSearch = searchQuery === "" || 
-      exercise.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      exercise.muscleGroup.toLowerCase().includes(searchQuery.toLowerCase());
+  // Filter exercises based on search term and filters
+  const filteredExercises = exercises.filter(exercise => {
+    const matchesSearch = exercise.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          exercise.muscleGroup.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          exercise.description.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesMuscleGroup = selectedMuscleGroup === null || 
-      exercise.muscleGroup === selectedMuscleGroup;
+    const matchesMuscleGroup = !selectedMuscleGroup || exercise.muscleGroup === selectedMuscleGroup;
     
-    const matchesEquipment = selectedEquipment === null || 
-      exercise.equipmentNeeded.includes(selectedEquipment);
+    const matchesEquipment = !selectedEquipment || 
+                             exercise.equipmentNeeded.includes(selectedEquipment);
     
     return matchesSearch && matchesMuscleGroup && matchesEquipment;
   });
@@ -46,116 +69,90 @@ const Exercises = () => {
       <main className="flex-grow container mx-auto px-4 py-8">
         <PageHeader 
           title="Exercise Database" 
-          description="Browse and search for exercises to include in your workout" 
+          description="Browse our comprehensive collection of exercises" 
         />
         
         <div className="mb-8">
-          {/* Search and filter */}
-          <div className="flex flex-col md:flex-row gap-4 mb-6">
-            <div className="relative flex-grow">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search exercises..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
-              {searchQuery && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-1 top-1 h-7 w-7"
-                  onClick={() => setSearchQuery("")}
+          <Tabs defaultValue="all" className="w-full">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+              <TabsList className="mb-4 md:mb-0">
+                <TabsTrigger value="all">All Exercises</TabsTrigger>
+                <TabsTrigger value="favorites">Favorites</TabsTrigger>
+              </TabsList>
+              
+              <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                <div className="relative w-full md:w-64">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search exercises..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+                
+                <Select 
+                  value={selectedMuscleGroup} 
+                  onValueChange={setSelectedMuscleGroup}
                 >
-                  <X className="h-3 w-3" />
-                </Button>
-              )}
-            </div>
-          </div>
-          
-          {/* Filters */}
-          <div className="space-y-4">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <Filter className="h-4 w-4" />
-                <h3 className="text-sm font-medium">Muscle Group</h3>
-                {selectedMuscleGroup && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 text-xs ml-auto"
-                    onClick={() => setSelectedMuscleGroup(null)}
-                  >
-                    Clear
-                  </Button>
-                )}
+                  <SelectTrigger className="w-full md:w-40">
+                    <SelectValue placeholder="Muscle Group" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Muscles</SelectItem>
+                    {muscleGroups.map(group => (
+                      <SelectItem key={group} value={group}>{group}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                <Select 
+                  value={selectedEquipment} 
+                  onValueChange={setSelectedEquipment}
+                >
+                  <SelectTrigger className="w-full md:w-40">
+                    <SelectValue placeholder="Equipment" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Equipment</SelectItem>
+                    <SelectItem value="None">Bodyweight</SelectItem>
+                    {equipmentTypes.map(eq => (
+                      <SelectItem key={eq} value={eq}>{eq}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <Tabs
-                value={selectedMuscleGroup || "all"}
-                onValueChange={(value) => setSelectedMuscleGroup(value === "all" ? null : value)}
-                className="w-full"
-              >
-                <TabsList className="w-full h-auto flex flex-wrap">
-                  <TabsTrigger value="all" className="flex-grow text-xs py-1">
-                    All
-                  </TabsTrigger>
-                  {muscleGroups.map((group) => (
-                    <TabsTrigger key={group} value={group} className="flex-grow text-xs py-1">
-                      {group}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </Tabs>
             </div>
             
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <Dumbbell className="h-4 w-4" />
-                <h3 className="text-sm font-medium">Equipment</h3>
-                {selectedEquipment && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 text-xs ml-auto"
-                    onClick={() => setSelectedEquipment(null)}
-                  >
-                    Clear
-                  </Button>
+            <TabsContent value="all" className="mt-0">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredExercises.length > 0 ? (
+                  filteredExercises.map((exercise) => (
+                    <ExerciseCard key={exercise.id} exercise={exercise} />
+                  ))
+                ) : (
+                  <div className="col-span-3 py-12 text-center">
+                    <Dumbbell className="mx-auto h-12 w-12 text-muted-foreground opacity-20" />
+                    <h3 className="mt-4 text-xl font-medium">No exercises found</h3>
+                    <p className="mt-2 text-muted-foreground">
+                      Try adjusting your search or filters
+                    </p>
+                  </div>
                 )}
               </div>
-              <Tabs
-                value={selectedEquipment || "all"}
-                onValueChange={(value) => setSelectedEquipment(value === "all" ? null : value)}
-                className="w-full"
-              >
-                <TabsList className="w-full h-auto flex flex-wrap">
-                  <TabsTrigger value="all" className="flex-grow text-xs py-1">
-                    All
-                  </TabsTrigger>
-                  {equipmentTypes.map((equipment) => (
-                    <TabsTrigger key={equipment} value={equipment} className="flex-grow text-xs py-1">
-                      {equipment}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </Tabs>
-            </div>
-          </div>
+            </TabsContent>
+            
+            <TabsContent value="favorites" className="mt-0">
+              <div className="py-12 text-center">
+                <Dumbbell className="mx-auto h-12 w-12 text-muted-foreground opacity-20" />
+                <h3 className="mt-4 text-xl font-medium">No favorites yet</h3>
+                <p className="mt-2 text-muted-foreground">
+                  Add exercises to your favorites for quick access
+                </p>
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
-        
-        {/* Results */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredExercises.map((exercise) => (
-            <ExerciseCard key={exercise.id} exercise={exercise} />
-          ))}
-        </div>
-        
-        {filteredExercises.length === 0 && (
-          <div className="text-center py-12">
-            <h3 className="text-xl font-medium text-muted-foreground">No exercises found</h3>
-            <p className="mt-2">Try adjusting your search or filters</p>
-          </div>
-        )}
       </main>
       
       <Footer />
@@ -163,83 +160,59 @@ const Exercises = () => {
   );
 };
 
+// Exercise Card Component
 const ExerciseCard = ({ exercise }: { exercise: Exercise }) => {
   return (
-    <Card>
+    <Card className="overflow-hidden h-full flex flex-col">
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <div>
-            <CardTitle className="text-lg">{exercise.name}</CardTitle>
-            <CardDescription className="mt-1">
-              <Badge variant="outline">{exercise.muscleGroup}</Badge>
-            </CardDescription>
+            <CardTitle>{exercise.name}</CardTitle>
+            <CardDescription>{exercise.muscleGroup}</CardDescription>
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
+      
+      <CardContent className="flex-grow">
+        {exercise.imageUrl && (
+          <div className="mb-4 overflow-hidden rounded-md">
+            <AspectRatio ratio={16 / 9}>
+              <img 
+                src={exercise.imageUrl} 
+                alt={exercise.name} 
+                className="object-cover w-full h-full"
+              />
+            </AspectRatio>
+          </div>
+        )}
+        
+        <p className="text-sm text-muted-foreground mb-4">
           {exercise.description}
         </p>
-        <div className="flex flex-wrap gap-2">
-          {exercise.equipmentNeeded.map((equipment, index) => (
-            <Badge key={index} variant="secondary">
+        
+        <div className="flex flex-wrap gap-2 mb-4">
+          {exercise.equipmentNeeded.map((equipment) => (
+            <Badge key={equipment} variant="outline">
               {equipment}
             </Badge>
           ))}
         </div>
       </CardContent>
-      <CardFooter className="flex justify-between">
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="outline">View Details</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{exercise.name}</DialogTitle>
-              <DialogDescription>
-                {exercise.muscleGroup}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 mt-4">
-              <p>{exercise.description}</p>
-              
-              <div>
-                <h4 className="font-medium mb-2">Equipment Needed:</h4>
-                <div className="flex flex-wrap gap-2">
-                  {exercise.equipmentNeeded.map((equipment, index) => (
-                    <Badge key={index} variant="secondary">
-                      {equipment}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-              
-              {exercise.demoVideoUrl && (
-                <div className="mt-4">
-                  <a 
-                    href={exercise.demoVideoUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="flex items-center text-primary hover:underline"
-                  >
-                    <Play className="mr-1 h-4 w-4" />
-                    Watch Demo Video
-                  </a>
-                </div>
-              )}
-            </div>
-          </DialogContent>
-        </Dialog>
+      
+      <CardFooter className="flex justify-between border-t pt-4">
+        <Button variant="outline" size="sm">
+          Add to Favorites
+        </Button>
         
         {exercise.demoVideoUrl && (
           <a 
-            href={exercise.demoVideoUrl} 
+            href={exercise.demoVideoUrl}
             target="_blank" 
             rel="noopener noreferrer"
-            className="text-primary hover:underline flex items-center"
+            className="flex items-center text-primary hover:underline"
           >
             <Play className="mr-1 h-4 w-4" />
-            Demo
+            Watch Demo
           </a>
         )}
       </CardFooter>
