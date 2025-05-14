@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { Dumbbell, Calendar, ArrowRight } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import Navbar from "@/components/Navbar";
@@ -40,10 +40,7 @@ const WorkoutGenerator = () => {
     try {
       // Validate input
       if (!validateDaysPerWeek(daysPerWeek)) {
-        toast("Invalid Selection", {
-          description: "Please select between 2 and 7 days per week",
-          variant: "destructive"
-        });
+        toast.error("Please select between 2 and 7 days per week");
         return;
       }
       
@@ -63,10 +60,7 @@ const WorkoutGenerator = () => {
       
     } catch (error) {
       console.error("Error generating workout:", error);
-      toast("Error", {
-        description: "Failed to generate workout plan",
-        variant: "destructive"
-      });
+      toast.error("Failed to generate workout plan");
       setIsGenerating(false);
     }
   };

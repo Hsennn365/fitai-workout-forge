@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from 'react';
 import { WorkoutPlan, UserProfile, Exercise } from '@/types';
 import { exercises } from '@/data/exercisesData';
 import { workoutTemplates, getTemplateByDaysPerWeek, getTemplateById } from '@/data/workoutTemplates';
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { v4 as uuidv4 } from 'uuid';
 
 interface WorkoutProgress {
@@ -40,9 +39,8 @@ export function useWorkoutData() {
       setIsLoading(false);
     } catch (error) {
       console.error('Error loading workout data:', error);
-      toast("Failed to load workout data", {
-        description: "There was an error loading your workout data",
-        variant: "destructive"
+      toast.error("Failed to load workout data", {
+        description: "There was an error loading your workout data"
       });
       setIsLoading(false);
     }
@@ -95,17 +93,12 @@ export function useWorkoutData() {
       console.log("Generated new plan:", newPlan);
       console.log("Updated userPlans:", [...userPlans, newPlan]);
       
-      toast("Success", {
-        description: "New workout plan generated successfully!",
-      });
+      toast.success("New workout plan generated successfully!");
       
       return newPlan;
     } catch (error) {
       console.error('Error generating workout plan:', error);
-      toast("Error", {
-        description: "Failed to generate workout plan",
-        variant: "destructive"
-      });
+      toast.error("Failed to generate workout plan");
       throw error;
     }
   };
@@ -134,9 +127,7 @@ export function useWorkoutData() {
     };
     
     setWorkoutProgress(prev => [newProgress, ...prev]);
-    toast("Success", {
-      description: "Workout logged successfully!",
-    });
+    toast.success("Workout logged successfully!");
   };
   
   // Get all progress for a specific plan
