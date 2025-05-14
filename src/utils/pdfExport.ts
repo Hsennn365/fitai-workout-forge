@@ -6,10 +6,13 @@ import 'jspdf-autotable';
 
 // TypeScript workaround for jsPDF-autotable
 declare module 'jspdf' {
+  // Define PubSub type to match the expected type
+  type PubSub = any;
+  
   interface jsPDF {
     autoTable: (options: any) => jsPDF;
     internal: {
-      events: any;
+      events: PubSub;
       scaleFactor: number;
       pageSize: {
         width: number;
