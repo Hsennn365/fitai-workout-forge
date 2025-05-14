@@ -9,15 +9,16 @@ declare module 'jspdf' {
   interface jsPDF {
     autoTable: (options: any) => jsPDF;
     internal: {
+      events: any;
+      scaleFactor: number;
       pageSize: {
         width: number;
-        height: number;
         getWidth: () => number;
+        height: number;
         getHeight: () => number;
       };
       pages: any[];
-      getCurrentPageInfo?: () => { pageNumber: number };
-      getNumberOfPages?: () => number;
+      getEncryptor(objectId: number): (data: string) => string;
     };
   }
 }
