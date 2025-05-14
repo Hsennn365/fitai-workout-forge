@@ -1,3 +1,4 @@
+
 import { WorkoutPlan } from '@/types';
 import { format } from 'date-fns';
 import { jsPDF } from 'jspdf';
@@ -5,13 +6,10 @@ import 'jspdf-autotable';
 
 // TypeScript workaround for jsPDF-autotable
 declare module 'jspdf' {
-  // Define PubSub type since it's required by the TypeScript interface
-  type PubSub = any;
-  
   interface jsPDF {
     autoTable: (options: any) => jsPDF;
     internal: {
-      events: PubSub;
+      events: any;
       scaleFactor: number;
       pageSize: {
         width: number;
@@ -19,7 +17,7 @@ declare module 'jspdf' {
         height: number;
         getHeight: () => number;
       };
-      pages: any[];
+      pages: number[]; // Changed from any[] to number[] to match expected type
       getEncryptor(objectId: number): (data: string) => string;
     };
   }
