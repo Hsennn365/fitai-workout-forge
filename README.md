@@ -1,73 +1,125 @@
-# Welcome to your Lovable project
+# FitAI Workout Forge
 
-## Project info
+FitAI Workout Forge is a React + TypeScript application that generates personalized workout plans using user biometrics. It’s designed for fitness enthusiasts and trainers who want custom routines delivered instantly in a sleek, responsive interface.
 
-**URL**: https://lovable.dev/projects/0c49c894-34a2-42b8-93cf-dcd8c705b962
+---
 
-## How can I edit this code?
+## Table of Contents
 
-There are several ways of editing your application.
+1. [Features](#features)
+2. [Tech Stack](#tech-stack)
+3. [Getting Started](#getting-started)
 
-**Use Lovable**
+   * [Prerequisites](#prerequisites)
+   * [Installation](#installation)
+   * [Development](#development)
+4. [Project Structure](#project-structure)
+5. [Contributing](#contributing)
+6. [Deployment](#deployment)
+7. [FAQ](#faq)
+8. [License](#license)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/0c49c894-34a2-42b8-93cf-dcd8c705b962) and start prompting.
+---
 
-Changes made via Lovable will be committed automatically to this repo.
+## Features
 
-**Use your preferred IDE**
+* **Biometric Input**: Collect age, height, weight, and activity level.
+* **AI-Driven Plans**: Instantly generate tailored workout routines.
+* **Responsive UI**: Works seamlessly on mobile, tablet, and desktop.
+* **Light & Dark Mode**: Toggle themes with Tailwind CSS.
+* **Persistent Settings**: Store user preferences locally.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Tech Stack
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+* **Framework**: React + TypeScript
+* **Build Tool**: Vite
+* **Styling**: Tailwind CSS + shadcn-ui
+* **State Management**: React Context (or your choice)
 
-Follow these steps:
+## Getting Started
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+### Prerequisites
+
+* [Node.js](https://nodejs.org/) (Recommended: LTS)
+* [npm](https://npmjs.com/) or [yarn](https://yarnpkg.com/)
+
+### Installation
+
+```bash
+# Clone the repo
 git clone <YOUR_GIT_URL>
+cd fitai-workout-forge
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+# Install dependencies
+npm install  # or yarn install
 ```
 
-**Edit a file directly in GitHub**
+### Development
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+# Start the dev server
+npm run dev  # or yarn dev
+```
 
-**Use GitHub Codespaces**
+Open your browser at `http://localhost:5173` (default port) to view the app.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+---
 
-## What technologies are used for this project?
+## Project Structure
 
-This project is built with:
+```
+├── public/           # Static assets and index.html
+├── src/
+│   ├── components/   # Reusable UI components
+│   ├── pages/        # Route-based pages
+│   ├── context/      # React Context providers
+│   ├── hooks/        # Custom React hooks
+│   ├── styles/       # Global styles and Tailwind config
+│   ├── utils/        # Helper functions
+│   └── main.tsx      # App entry point
+├── tailwind.config.ts
+├── tsconfig.json
+└── vite.config.ts
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+---
 
-## How can I deploy this project?
+## Contributing
 
-Simply open [Lovable](https://lovable.dev/projects/0c49c894-34a2-42b8-93cf-dcd8c705b962) and click on Share -> Publish.
+1. Fork the repository.
+2. Create a feature branch: `git checkout -b feature/my-awesome-feature`
+3. Commit your changes: `git commit -m "Add my feature"`
+4. Push to the branch: `git push origin feature/my-awesome-feature`
+5. Open a Pull Request and describe your changes.
 
-## Can I connect a custom domain to my Lovable project?
+Please follow conventional commits and ensure your code passes linting and formatting.
 
-Yes, you can!
+---
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## Deployment
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+You can deploy to any static host (Netlify, Vercel, GitHub Pages). For example, with Vercel:
+
+```bash
+# Install Vercel CLI if needed
+npm i -g vercel
+
+# Deploy
+vercel
+```
+
+---
+
+## FAQ
+
+**Q**: How do I change the primary theme colors?
+**A**: Edit `tailwind.config.ts` under `theme.extend.colors` and restart the dev server.
+
+**Q**: Where are user settings stored?
+**A**: In `localStorage` under the key `fitai-settings`.
+
+---
+
+## License
+
+Released under the MIT License. See [LICENSE](LICENSE) for details.
