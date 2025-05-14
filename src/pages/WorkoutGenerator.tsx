@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/use-toast";
 import { Dumbbell, Calendar, ArrowRight } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import Navbar from "@/components/Navbar";
@@ -41,24 +41,35 @@ const WorkoutGenerator = () => {
     try {
       // Validate input
       if (!validateDaysPerWeek(daysPerWeek)) {
-        toast.error("Please select between 2 and 7 days per week");
+        toast({
+          title: "Invalid Selection",
+          description: "Please select between 2 and 7 days per week",
+          variant: "destructive"
+        });
         return;
       }
       
       setIsGenerating(true);
       
-      // In a real app, this would call the AI service
+      console.log("Generating workout plan with days per week:", daysPerWeek);
+      
+      // Generate workout plan using our hook
+      const plan = generateWorkoutPlan(user, daysPerWeek);
+      console.log("Plan generated:", plan);
+      
       setTimeout(() => {
-        // Generate workout plan using our hook
-        const plan = generateWorkoutPlan(user, daysPerWeek);
-        
         // Navigate to the workout plan
-        navigate(`/workout-plan/${plan.id}`);
         setIsGenerating(false);
-      }, 1500);
+        navigate(`/workout-plan/${plan.id}`);
+      }, 1000);
+      
     } catch (error) {
       console.error("Error generating workout:", error);
-      toast.error("Failed to generate workout plan");
+      toast({
+        title: "Error",
+        description: "Failed to generate workout plan",
+        variant: "destructive"
+      });
       setIsGenerating(false);
     }
   };

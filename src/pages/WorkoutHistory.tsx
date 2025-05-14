@@ -7,27 +7,12 @@ import PageHeader from "@/components/PageHeader";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { WorkoutPlan } from "@/types";
-import { mockWorkoutPlans } from "@/mockData";
 import WorkoutCard from "@/components/WorkoutCard";
+import { useWorkoutData } from "@/hooks/useWorkoutData";
 
 const WorkoutHistory = () => {
   const navigate = useNavigate();
-  const [workoutPlans, setWorkoutPlans] = useState<WorkoutPlan[]>([]);
-
-  // Load workout plans from localStorage or use mock data
-  useEffect(() => {
-    try {
-      const storedPlans = localStorage.getItem("workoutPlans");
-      if (storedPlans) {
-        setWorkoutPlans(JSON.parse(storedPlans));
-      } else {
-        setWorkoutPlans(mockWorkoutPlans);
-      }
-    } catch (error) {
-      console.error("Error loading workout plans:", error);
-      setWorkoutPlans(mockWorkoutPlans);
-    }
-  }, []);
+  const { userPlans, isLoading } = useWorkoutData();
 
   const handleViewWorkout = (workout: WorkoutPlan) => {
     navigate(`/workout-plan/${workout.id}`);
@@ -53,9 +38,13 @@ const WorkoutHistory = () => {
           </Button>
         </div>
         
-        {workoutPlans.length > 0 ? (
+        {isLoading ? (
+          <div className="flex justify-center items-center py-20">
+            <p>Loading workout plans...</p>
+          </div>
+        ) : userPlans.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {workoutPlans.map((plan) => (
+            {userPlans.map((plan) => (
               <WorkoutCard 
                 key={plan.id} 
                 workout={plan} 

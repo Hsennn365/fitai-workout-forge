@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { WorkoutPlan, UserProfile, Exercise } from '@/types';
 import { exercises } from '@/data/exercisesData';
 import { workoutTemplates, getTemplateByDaysPerWeek, getTemplateById } from '@/data/workoutTemplates';
-import { toast } from "sonner";
+import { toast } from "@/components/ui/use-toast";
 import { v4 as uuidv4 } from 'uuid';
 
 interface WorkoutProgress {
@@ -40,7 +40,11 @@ export function useWorkoutData() {
       setIsLoading(false);
     } catch (error) {
       console.error('Error loading workout data:', error);
-      toast.error('Failed to load workout data');
+      toast({
+        title: "Error",
+        description: "Failed to load workout data",
+        variant: "destructive"
+      });
       setIsLoading(false);
     }
   }, []);
@@ -87,17 +91,24 @@ export function useWorkoutData() {
         weeks: JSON.parse(JSON.stringify(template.weeks)) // Deep copy
       };
       
-      // Customize plan based on user profile
-      // (In a real app, this would use AI to generate personalized workouts)
-      
       // Add the new plan to user plans
       setUserPlans(prevPlans => [newPlan, ...prevPlans]);
+      console.log("Generated new plan:", newPlan);
+      console.log("Updated userPlans:", [...userPlans, newPlan]);
       
-      toast.success('New workout plan generated successfully!');
+      toast({
+        title: "Success",
+        description: "New workout plan generated successfully!",
+      });
+      
       return newPlan;
     } catch (error) {
       console.error('Error generating workout plan:', error);
-      toast.error('Failed to generate workout plan');
+      toast({
+        title: "Error",
+        description: "Failed to generate workout plan",
+        variant: "destructive"
+      });
       throw error;
     }
   };
@@ -126,7 +137,10 @@ export function useWorkoutData() {
     };
     
     setWorkoutProgress(prev => [newProgress, ...prev]);
-    toast.success('Workout logged successfully!');
+    toast({
+      title: "Success",
+      description: "Workout logged successfully!",
+    });
   };
   
   // Get all progress for a specific plan
