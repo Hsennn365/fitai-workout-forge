@@ -28,7 +28,11 @@ export function useWorkoutData() {
       // Load user plans
       const storedPlans = localStorage.getItem('workoutPlans');
       if (storedPlans) {
-        setUserPlans(JSON.parse(storedPlans));
+        const parsed = JSON.parse(storedPlans);
+        console.log("Loaded plans from localStorage:", parsed);
+        setUserPlans(parsed);
+      } else {
+        console.log("No workout plans found in localStorage");
       }
       
       // Load workout progress
@@ -40,9 +44,7 @@ export function useWorkoutData() {
       setIsLoading(false);
     } catch (error) {
       console.error('Error loading workout data:', error);
-      toast.error("Failed to load workout data", {
-        description: "There was an error loading your workout data"
-      });
+      toast.error("Failed to load workout data");
       setIsLoading(false);
     }
   }, []);
@@ -50,14 +52,22 @@ export function useWorkoutData() {
   // Save data to localStorage whenever it changes
   useEffect(() => {
     if (!isLoading) {
-      localStorage.setItem('workoutPlans', JSON.stringify(userPlans));
-      console.log("Saving userPlans to localStorage:", userPlans);
+      try {
+        localStorage.setItem('workoutPlans', JSON.stringify(userPlans));
+        console.log("Saving userPlans to localStorage:", userPlans);
+      } catch (error) {
+        console.error("Error saving plans to localStorage:", error);
+      }
     }
   }, [userPlans, isLoading]);
   
   useEffect(() => {
     if (!isLoading) {
-      localStorage.setItem('workoutProgress', JSON.stringify(workoutProgress));
+      try {
+        localStorage.setItem('workoutProgress', JSON.stringify(workoutProgress));
+      } catch (error) {
+        console.error("Error saving progress to localStorage:", error);
+      }
     }
   }, [workoutProgress, isLoading]);
   
@@ -82,8 +92,11 @@ export function useWorkoutData() {
       }
       
       // Create a new plan based on the template
+      const newId = uuidv4();
+      console.log("Generated new plan ID:", newId);
+      
       const newPlan: WorkoutPlan = {
-        id: uuidv4(),
+        id: newId,
         userId: userProfile.id,
         generatedOn: new Date().toISOString(),
         name: `${daysPerWeek}-Day ${template.name} for ${userProfile.name}`,
@@ -111,6 +124,11 @@ export function useWorkoutData() {
   const getWorkoutPlanById = (planId: string): WorkoutPlan | undefined => {
     console.log("Looking for plan with ID:", planId);
     console.log("Available user plans:", userPlans);
+    
+    if (!planId) {
+      console.error("No plan ID provided");
+      return undefined;
+    }
     
     // First look in user plans
     const userPlan = userPlans.find(plan => plan.id === planId);

@@ -12,6 +12,11 @@ interface WorkoutCardProps {
 }
 
 const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onView }) => {
+  if (!workout || !workout.weeks || !workout.weeks[0]) {
+    console.error("Invalid workout plan:", workout);
+    return null;
+  }
+
   const totalExercises = workout.weeks.reduce((total, week) => {
     return total + week.days.reduce((dayTotal, day) => {
       return dayTotal + day.exercises.length;

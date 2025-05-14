@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -22,9 +23,12 @@ const WorkoutPlanPage = () => {
   const { getWorkoutPlanById, logWorkoutProgress } = useWorkoutData();
   const [workout, setWorkout] = useState<WorkoutPlanType | null>(null);
   const [selectedWeek, setSelectedWeek] = useState("1");
+  const [loading, setLoading] = useState(true);
   
   useEffect(() => {
     try {
+      setLoading(true);
+      
       if (!planId) {
         console.error("No planId provided");
         toast.error("No workout plan ID provided");
@@ -41,11 +45,13 @@ const WorkoutPlanPage = () => {
       } else {
         console.error(`Workout plan with ID ${planId} not found`);
         toast.error("Workout plan not found");
-        navigate('/workout-history');
+        setTimeout(() => navigate('/workout-history'), 1000);
       }
     } catch (error) {
       console.error("Error loading workout plan:", error);
       toast.error("Error loading workout plan");
+    } finally {
+      setLoading(false);
     }
   }, [planId, navigate, getWorkoutPlanById]);
 
@@ -61,10 +67,10 @@ const WorkoutPlanPage = () => {
   };
   
   const handleLogWorkout = () => {
-    if (!workout) return;
+    if (!workout?.id) return;
     try {
       // In a real app, we would collect actual workout data
-      logWorkoutProgress(workout.id || "", "Completed workout as planned", 300);
+      logWorkoutProgress(workout.id, "Completed workout as planned", 300);
       toast.success("Workout logged successfully");
     } catch (error) {
       console.error("Error logging workout:", error);
@@ -72,13 +78,32 @@ const WorkoutPlanPage = () => {
     }
   };
 
-  if (!workout) {
+  if (loading) {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
         <main className="flex-grow container mx-auto px-4 py-8 flex items-center justify-center">
           <div className="text-center">
             <h2 className="text-2xl font-semibold mb-4">Loading workout plan...</h2>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+  
+  if (!workout) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-grow container mx-auto px-4 py-8 flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-2xl font-semibold mb-4">Workout plan not found</h2>
+            <p className="mb-6">The workout plan you're looking for could not be found.</p>
+            <Button onClick={() => navigate('/workout-history')}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Workout History
+            </Button>
           </div>
         </main>
         <Footer />

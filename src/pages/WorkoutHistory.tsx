@@ -1,5 +1,4 @@
 
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
@@ -9,6 +8,7 @@ import Footer from "@/components/Footer";
 import { WorkoutPlan } from "@/types";
 import WorkoutCard from "@/components/WorkoutCard";
 import { useWorkoutData } from "@/hooks/useWorkoutData";
+import { toast } from "sonner";
 
 const WorkoutHistory = () => {
   const navigate = useNavigate();
@@ -22,6 +22,7 @@ const WorkoutHistory = () => {
       navigate(`/workout-plan/${workout.id}`);
     } else {
       console.error("Workout plan has no ID:", workout);
+      toast.error("Cannot view this workout plan - missing ID");
     }
   };
 
