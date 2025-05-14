@@ -1,5 +1,5 @@
 
-import { WorkoutPlan, Day } from '@/types';
+import { WorkoutPlan } from '@/types';
 import { format } from 'date-fns';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
@@ -8,6 +8,17 @@ import 'jspdf-autotable';
 declare module 'jspdf' {
   interface jsPDF {
     autoTable: (options: any) => jsPDF;
+    internal: {
+      pageSize: {
+        width: number;
+        height: number;
+        getWidth: () => number;
+        getHeight: () => number;
+      };
+      pages: any[];
+      getCurrentPageInfo?: () => { pageNumber: number };
+      getNumberOfPages?: () => number;
+    };
   }
 }
 
@@ -58,8 +69,8 @@ export const exportWorkoutToPDF = (workout: WorkoutPlan): void => {
       // Detailed exercises for each day
       week.days.forEach((day, dayIndex) => {
         if (day.exercises.length > 0) {
-          // Add a page break if needed
-          if (doc.internal.getCurrentPageInfo().pageNumber > 1 ||
+          // Add a page break if needed - use a safer check
+          if ((doc.internal.pages.length > 1) ||
               (weekIndex > 0 && dayIndex > 2)) {
             doc.addPage();
           }
@@ -90,7 +101,7 @@ export const exportWorkoutToPDF = (workout: WorkoutPlan): void => {
     });
     
     // Add footer
-    const pageCount = doc.internal.getNumberOfPages();
+    const pageCount = doc.internal.pages.length - 1;
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
       doc.setFontSize(10);
