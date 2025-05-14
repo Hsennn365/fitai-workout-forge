@@ -40,9 +40,8 @@ export function useWorkoutData() {
       setIsLoading(false);
     } catch (error) {
       console.error('Error loading workout data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load workout data",
+      toast("Failed to load workout data", {
+        description: "There was an error loading your workout data",
         variant: "destructive"
       });
       setIsLoading(false);
@@ -96,16 +95,14 @@ export function useWorkoutData() {
       console.log("Generated new plan:", newPlan);
       console.log("Updated userPlans:", [...userPlans, newPlan]);
       
-      toast({
-        title: "Success",
+      toast("Success", {
         description: "New workout plan generated successfully!",
       });
       
       return newPlan;
     } catch (error) {
       console.error('Error generating workout plan:', error);
-      toast({
-        title: "Error",
+      toast("Error", {
         description: "Failed to generate workout plan",
         variant: "destructive"
       });
@@ -137,8 +134,7 @@ export function useWorkoutData() {
     };
     
     setWorkoutProgress(prev => [newProgress, ...prev]);
-    toast({
-      title: "Success",
+    toast("Success", {
       description: "Workout logged successfully!",
     });
   };

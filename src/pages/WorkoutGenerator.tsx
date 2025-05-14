@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -41,8 +40,7 @@ const WorkoutGenerator = () => {
     try {
       // Validate input
       if (!validateDaysPerWeek(daysPerWeek)) {
-        toast({
-          title: "Invalid Selection",
+        toast("Invalid Selection", {
           description: "Please select between 2 and 7 days per week",
           variant: "destructive"
         });
@@ -65,8 +63,7 @@ const WorkoutGenerator = () => {
       
     } catch (error) {
       console.error("Error generating workout:", error);
-      toast({
-        title: "Error",
+      toast("Error", {
         description: "Failed to generate workout plan",
         variant: "destructive"
       });
