@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -27,13 +26,17 @@ const WorkoutPlanPage = () => {
   useEffect(() => {
     try {
       if (!planId) {
+        console.error("No planId provided");
+        toast.error("No workout plan ID provided");
         navigate('/workout-history');
         return;
       }
       
+      console.log("Looking for workout plan with ID:", planId);
       const foundPlan = getWorkoutPlanById(planId);
       
       if (foundPlan) {
+        console.log("Found workout plan:", foundPlan);
         setWorkout(foundPlan);
       } else {
         console.error(`Workout plan with ID ${planId} not found`);

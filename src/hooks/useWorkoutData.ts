@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { WorkoutPlan, UserProfile, Exercise } from '@/types';
 import { exercises } from '@/data/exercisesData';
@@ -50,6 +51,7 @@ export function useWorkoutData() {
   useEffect(() => {
     if (!isLoading) {
       localStorage.setItem('workoutPlans', JSON.stringify(userPlans));
+      console.log("Saving userPlans to localStorage:", userPlans);
     }
   }, [userPlans, isLoading]);
   
@@ -89,9 +91,11 @@ export function useWorkoutData() {
       };
       
       // Add the new plan to user plans
-      setUserPlans(prevPlans => [newPlan, ...prevPlans]);
+      const updatedPlans = [...userPlans, newPlan];
+      setUserPlans(updatedPlans);
+      
       console.log("Generated new plan:", newPlan);
-      console.log("Updated userPlans:", [...userPlans, newPlan]);
+      console.log("Updated userPlans:", updatedPlans);
       
       toast.success("New workout plan generated successfully!");
       
@@ -105,14 +109,25 @@ export function useWorkoutData() {
   
   // Get a workout plan by ID
   const getWorkoutPlanById = (planId: string): WorkoutPlan | undefined => {
+    console.log("Looking for plan with ID:", planId);
+    console.log("Available user plans:", userPlans);
+    
     // First look in user plans
     const userPlan = userPlans.find(plan => plan.id === planId);
     if (userPlan) {
+      console.log("Found plan in user plans:", userPlan);
       return userPlan;
     }
     
     // If not found, look in templates
-    return getTemplateById(planId);
+    const templatePlan = getTemplateById(planId);
+    if (templatePlan) {
+      console.log("Found plan in templates:", templatePlan);
+      return templatePlan;
+    }
+    
+    console.log("Plan not found in user plans or templates");
+    return undefined;
   };
   
   // Log a completed workout

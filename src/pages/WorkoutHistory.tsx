@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
@@ -13,9 +13,16 @@ import { useWorkoutData } from "@/hooks/useWorkoutData";
 const WorkoutHistory = () => {
   const navigate = useNavigate();
   const { userPlans, isLoading } = useWorkoutData();
+  
+  console.log("Rendered WorkoutHistory with userPlans:", userPlans);
 
   const handleViewWorkout = (workout: WorkoutPlan) => {
-    navigate(`/workout-plan/${workout.id}`);
+    if (workout.id) {
+      console.log("Navigating to workout plan:", workout.id);
+      navigate(`/workout-plan/${workout.id}`);
+    } else {
+      console.error("Workout plan has no ID:", workout);
+    }
   };
 
   return (
