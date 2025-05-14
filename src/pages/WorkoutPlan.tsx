@@ -28,7 +28,7 @@ const WorkoutPlan = () => {
       const parsedPlans = storedPlans ? JSON.parse(storedPlans) : [];
       
       // Find the workout plan by ID
-      let foundPlan = parsedPlans.find((plan: WorkoutPlan) => plan.id === planId);
+      let foundPlan = parsedPlans.find((plan: WorkoutPlanType) => plan.id === planId);
       
       // If not found in localStorage, try mock data
       if (!foundPlan) {
