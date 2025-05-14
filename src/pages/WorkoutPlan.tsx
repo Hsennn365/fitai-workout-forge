@@ -12,13 +12,13 @@ import { ArrowLeft, Calendar, Clock, Weight, Info, Play } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { WorkoutPlan } from "@/types";
+import type { WorkoutPlan as WorkoutPlanType } from "@/types";
 import { mockWorkoutPlans } from "@/mockData";
 
 const WorkoutPlan = () => {
   const { planId } = useParams<{ planId: string }>();
   const navigate = useNavigate();
-  const [workout, setWorkout] = useState<WorkoutPlan | null>(null);
+  const [workout, setWorkout] = useState<WorkoutPlanType | null>(null);
   const [selectedWeek, setSelectedWeek] = useState("1");
   
   useEffect(() => {
@@ -141,16 +141,19 @@ const WorkoutPlan = () => {
                                         This exercise targets the {exercise.muscleGroup.toLowerCase()} muscle group.
                                       </p>
                                       
+                                      {/* We need to fix the demoVideoUrl reference here */}
                                       <div className="flex items-center">
-                                        {exercise.demoVideoUrl && (
+                                        {/* Instead of checking for demoVideoUrl, which doesn't exist in WorkoutExercise,
+                                            we'll use notes as a condition to display the demo link */}
+                                        {exercise.notes && (
                                           <a 
-                                            href={exercise.demoVideoUrl} 
+                                            href={`https://www.youtube.com/results?search_query=${encodeURIComponent(exercise.name)}+exercise+tutorial`}
                                             target="_blank" 
                                             rel="noopener noreferrer"
                                             className="flex items-center text-primary hover:underline"
                                           >
                                             <Play className="mr-1 h-4 w-4" />
-                                            Watch Demo
+                                            Search Demo
                                           </a>
                                         )}
                                       </div>
