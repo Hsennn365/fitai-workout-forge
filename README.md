@@ -48,7 +48,7 @@ FitAI Workout Forge is a React + TypeScript application that generates personali
 ```bash
 # Clone the repo
 git clone <YOUR_GIT_URL>
-cd fitai-workout-forge
+cd fitai-workout-forge-main
 
 # Install dependencies
 npm install  # or yarn install
@@ -61,7 +61,7 @@ npm install  # or yarn install
 npm run dev  # or yarn dev
 ```
 
-Open your browser at `http://localhost:5173` (default port) to view the app.
+Open your browser at `http://localhost:8080` (default port) to view the app.
 
 ---
 
